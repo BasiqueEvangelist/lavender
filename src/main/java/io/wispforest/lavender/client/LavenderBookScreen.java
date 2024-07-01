@@ -109,15 +109,15 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
         this.window = this.client.getWindow();
         double gameScale = this.window.getScaleFactor();
 
-        this.scaleFactor = this.window.calculateScaleFactor(!this.isOverlay ? this.client.options.getGuiScale().getValue() : 0, true);
-        this.window.setScaleFactor(this.scaleFactor);
+//        this.scaleFactor = this.window.calculateScaleFactor(!this.isOverlay ? this.client.options.getGuiScale().getValue() : 0, true);
+//        this.window.setScaleFactor(this.scaleFactor);
 
-        this.width = this.window.getScaledWidth();
-        this.height = this.window.getScaledHeight();
+//        this.width = this.window.getScaledWidth();
+//        this.height = this.window.getScaledHeight();
 
         super.init();
 
-        this.window.setScaleFactor(gameScale);
+//        this.window.setScaleFactor(gameScale);
     }
 
     protected <C extends Component> C template(Class<C> expectedComponentClass, String name) {
@@ -343,27 +343,27 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        mouseX = (int) (mouseX * this.window.getScaleFactor() / this.scaleFactor);
-        mouseY = (int) (mouseY * this.window.getScaleFactor() / this.scaleFactor);
+//        mouseX = (int) (mouseX * this.window.getScaleFactor() / this.scaleFactor);
+//        mouseY = (int) (mouseY * this.window.getScaleFactor() / this.scaleFactor);
 
-        double gameScale = this.window.getScaleFactor();
-        this.window.setScaleFactor(this.scaleFactor);
+//        double gameScale = this.window.getScaleFactor();
+//        this.window.setScaleFactor(this.scaleFactor);
 
-        RenderSystem.backupProjectionMatrix();
-        RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(
-                0,
-                this.window.getFramebufferWidth() / (float) this.scaleFactor,
-                this.window.getFramebufferHeight() / (float) this.scaleFactor,
-                0,
-                1000,
-                21000
-        ), VertexSorter.BY_Z);
+//        RenderSystem.backupProjectionMatrix();
+//        RenderSystem.setProjectionMatrix(new Matrix4f().setOrtho(
+//                0,
+//                this.window.framebufferWidth() / (float) this.scaleFactor,
+//                this.window.framebufferHeight() / (float) this.scaleFactor,
+//                0,
+//                1000,
+//                21000
+//        ), VertexSorter.BY_Z);
 
         super.render(context, mouseX, mouseY, delta);
         context.draw();
 
-        RenderSystem.restoreProjectionMatrix();
-        this.window.setScaleFactor(gameScale);
+//        RenderSystem.restoreProjectionMatrix();
+//        this.window.setScaleFactor(gameScale);
     }
 
     @Override
@@ -400,8 +400,8 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        mouseX = mouseX * this.window.getScaleFactor() / this.scaleFactor;
-        mouseY = mouseY * this.window.getScaleFactor() / this.scaleFactor;
+//        mouseX = mouseX * this.window.scaleFactor() / this.scaleFactor;
+//        mouseY = mouseY * this.window.scaleFactor() / this.scaleFactor;
 
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
 
@@ -420,22 +420,22 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        mouseX = mouseX * this.window.getScaleFactor() / this.scaleFactor;
-        mouseY = mouseY * this.window.getScaleFactor() / this.scaleFactor;
+//        mouseX = mouseX * this.window.scaleFactor() / this.scaleFactor;
+//        mouseY = mouseY * this.window.scaleFactor() / this.scaleFactor;
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        mouseX = mouseX * this.window.getScaleFactor() / this.scaleFactor;
-        mouseY = mouseY * this.window.getScaleFactor() / this.scaleFactor;
+//        mouseX = mouseX * this.window.scaleFactor() / this.scaleFactor;
+//        mouseY = mouseY * this.window.scaleFactor() / this.scaleFactor;
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        mouseX = mouseX * this.window.getScaleFactor() / this.scaleFactor;
-        mouseY = mouseY * this.window.getScaleFactor() / this.scaleFactor;
+//        mouseX = mouseX * this.window.scaleFactor() / this.scaleFactor;
+//        mouseY = mouseY * this.window.scaleFactor() / this.scaleFactor;
 
         if (super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)) return true;
         this.turnPage(verticalAmount < 0);

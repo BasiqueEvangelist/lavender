@@ -1,5 +1,6 @@
 package io.wispforest.lavender.client;
 
+import com.mojang.brigadier.context.CommandContext;
 import io.wispforest.lavender.Lavender;
 import io.wispforest.lavender.LavenderCommands;
 import io.wispforest.lavender.book.Book;
@@ -22,6 +23,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
@@ -31,7 +33,9 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.item.Items;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
@@ -133,6 +137,19 @@ public class LavenderClient implements ClientModInitializer {
         });
 
         UIParsing.registerFactory(Lavender.id("item-list"), element -> new ItemListComponent());
+
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            dispatcher.register(ClientCommandManager.literal("open-lavender-window")
+                .then(ClientCommandManager.argument("book_id", IdentifierArgumentType.identifier())
+                    .executes(context -> {
+                        @SuppressWarnings("unchecked")
+                        var book = BookLoader.get(IdentifierArgumentType.getIdentifier((CommandContext<ServerCommandSource>)(Object) context, "book_id"));
+
+                        new LavenderBookWindow(book);
+
+                        return 0;
+                    })));
+        });
     }
 
     public static UUID currentWorldId() {
