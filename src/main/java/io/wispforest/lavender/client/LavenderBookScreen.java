@@ -148,7 +148,7 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
 
     @Override
     protected void build(FlowLayout rootComponent) {
-        if (this.isOverlay) rootComponent.surface(Surface.BLANK);
+        if (this.isOverlay | true) rootComponent.surface(Surface.BLANK);
         rootComponent.child(this.template(Component.class, "primary-panel"));
 
         this.leftPageAnchor = this.component(FlowLayout.class, "left-page-anchor");

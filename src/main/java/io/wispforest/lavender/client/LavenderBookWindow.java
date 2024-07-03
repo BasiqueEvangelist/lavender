@@ -1,6 +1,7 @@
 package io.wispforest.lavender.client;
 
 import io.wispforest.lavender.book.Book;
+import io.wispforest.lavender.book.LavenderBookItem;
 import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
@@ -8,24 +9,22 @@ import io.wispforest.owo.ui.core.OwoUIAdapter;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.ui.window.OwoWindow;
+import io.wispforest.owo.ui.window.WindowIcon;
 import io.wispforest.owo.ui.window.context.CurrentWindowContext;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.Identifier;
+import org.lwjgl.glfw.GLFW;
 
 public class LavenderBookWindow extends OwoWindow<FlowLayout> {
-    private final LavenderBookScreen screen;
+    private final Book book;
 
     public LavenderBookWindow(Book book) {
-        super(640, 480, book.id().toString(), MinecraftClient.getInstance().getWindow().getHandle());
+        this.book = book;
 
-        this.screen = new LavenderBookScreen(book, false);
-
-        try (var ignored = CurrentWindowContext.setCurrent(this)) {
-            this.screen.init(client, scaledWidth(), scaledHeight());
-        }
-
-        framebufferResized().subscribe((newWidth, newHeight) -> {
-            this.screen.init(client, scaledWidth(), scaledHeight());
-        });
+        title(LavenderBookItem.itemOf(book).getName().getString());
+        icon(WindowIcon.fromResources(Identifier.of("lavender:textures/item/red_book.png")));
+        windowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, 1);
+        windowHint(GLFW.GLFW_DECORATED, 0);
     }
 
     @Override
@@ -35,6 +34,17 @@ public class LavenderBookWindow extends OwoWindow<FlowLayout> {
 
     @Override
     protected void build(FlowLayout rootComponent) {
+        var screen = new LavenderBookScreen(book, false);
+        var client = MinecraftClient.getInstance();
+
+        try (var ignored = CurrentWindowContext.setCurrent(this)) {
+            screen.init(client, scaledWidth(), scaledHeight());
+        }
+
+        framebufferResized().subscribe((newWidth, newHeight) -> {
+            screen.init(client, scaledWidth(), scaledHeight());
+        });
+
         rootComponent.child(new BaseComponent() {
             @Override
             public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {

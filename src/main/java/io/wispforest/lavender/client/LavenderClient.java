@@ -145,7 +145,8 @@ public class LavenderClient implements ClientModInitializer {
                         @SuppressWarnings("unchecked")
                         var book = BookLoader.get(IdentifierArgumentType.getIdentifier((CommandContext<ServerCommandSource>)(Object) context, "book_id"));
 
-                        new LavenderBookWindow(book);
+                        new LavenderBookWindow(book)
+                            .open();
 
                         return 0;
                     })));
