@@ -202,6 +202,12 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
             );
         }
 
+        if (this.bookWindow != null) {
+            this.component(FlowLayout.class, "primary-panel").child(
+                this.template(MoveButtonComponent.class, "move-button").attachWindow(this.bookWindow)
+            );
+        }
+
         this.searchBox = this.component(TextBoxComponent.class, "search-box");
         searchBox.visible = searchBox.active = false;
         searchBox.onChanged().subscribe(value -> {

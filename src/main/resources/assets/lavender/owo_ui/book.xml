@@ -422,5 +422,23 @@
                 <positioning type="absolute">-9,130</positioning>
             </button>
         </template>
+
+        <template name="move-button">
+            <lavender.move-button>
+                <renderer>
+                    <texture texture="{{book-texture}}" u="21" v="210"
+                             texture-width="512" texture-height="256"/>
+                </renderer>
+
+                <tooltip-text translate="true">text.lavender.book.move</tooltip-text>
+
+                <sizing>
+                    <horizontal method="fixed">16</horizontal>
+                    <vertical method="fixed">16</vertical>
+                </sizing>
+
+                <positioning type="absolute">-9,130</positioning>
+            </lavender.move-button>
+        </template>
     </templates>
 </owo-ui>

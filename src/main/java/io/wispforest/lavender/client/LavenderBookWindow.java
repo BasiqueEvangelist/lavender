@@ -89,6 +89,11 @@ public class LavenderBookWindow extends OwoWindow<FlowLayout> {
             public boolean onMouseDrag(double mouseX, double mouseY, double deltaX, double deltaY, int button) {
                 return super.onMouseDrag(mouseX, mouseY, deltaX, deltaY, button) | screen.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
             }
+
+            @Override
+            public boolean canFocus(FocusSource source) {
+                return true;
+            }
         }.sizing(Sizing.fill(100)));
     }
 }

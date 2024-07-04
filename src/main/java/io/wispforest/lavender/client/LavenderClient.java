@@ -1,6 +1,5 @@
 package io.wispforest.lavender.client;
 
-import com.mojang.brigadier.context.CommandContext;
 import io.wispforest.lavender.Lavender;
 import io.wispforest.lavender.LavenderCommands;
 import io.wispforest.lavender.book.Book;
@@ -9,6 +8,7 @@ import io.wispforest.lavender.book.BookLoader;
 import io.wispforest.lavender.book.LavenderBookItem;
 import io.wispforest.lavender.md.ItemListComponent;
 import io.wispforest.lavender.structure.LavenderStructures;
+import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
@@ -23,19 +23,15 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.item.Items;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
@@ -137,6 +133,8 @@ public class LavenderClient implements ClientModInitializer {
         });
 
         UIParsing.registerFactory(Lavender.id("item-list"), element -> new ItemListComponent());
+
+        UIParsing.registerFactory(Lavender.id("move-button"), element -> new MoveButtonComponent(Text.empty(), (ButtonComponent button) -> {}));
     }
 
     public static UUID currentWorldId() {
