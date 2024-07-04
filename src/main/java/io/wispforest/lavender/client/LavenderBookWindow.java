@@ -16,7 +16,8 @@ import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 public class LavenderBookWindow extends OwoWindow<FlowLayout> {
-    private final Book book;
+    private Book book;
+    private LavenderBookScreen screen;
 
     public LavenderBookWindow(Book book) {
         this.book = book;
@@ -25,6 +26,7 @@ public class LavenderBookWindow extends OwoWindow<FlowLayout> {
         icon(WindowIcon.fromResources(Identifier.of("lavender:textures/item/red_book.png")));
         windowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, 1);
         windowHint(GLFW.GLFW_DECORATED, 0);
+        windowHint(GLFW.GLFW_FLOATING, 1);
     }
 
     @Override
@@ -32,17 +34,24 @@ public class LavenderBookWindow extends OwoWindow<FlowLayout> {
         return OwoUIAdapter.create(this, Containers::verticalFlow);
     }
 
+    void resetScreen(Book book) {
+        if (this.screen != null) screen.removed();
+
+        var client = MinecraftClient.getInstance();
+        this.book = book;
+        this.screen = new LavenderBookScreen(book, false, this);
+        try (var ignored = CurrentWindowContext.setCurrent(this)) {
+            this.screen.init(client, scaledWidth(), scaledHeight());
+        }
+    }
+
     @Override
     protected void build(FlowLayout rootComponent) {
-        var screen = new LavenderBookScreen(book, false);
-        var client = MinecraftClient.getInstance();
-
-        try (var ignored = CurrentWindowContext.setCurrent(this)) {
-            screen.init(client, scaledWidth(), scaledHeight());
-        }
+        resetScreen(this.book);
 
         framebufferResized().subscribe((newWidth, newHeight) -> {
-            screen.init(client, scaledWidth(), scaledHeight());
+            var client = MinecraftClient.getInstance();
+            this.screen.init(client, scaledWidth(), scaledHeight());
         });
 
         rootComponent.child(new BaseComponent() {

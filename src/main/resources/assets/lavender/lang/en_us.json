@@ -59,6 +59,7 @@
     {"text": "↓ Scroll Down", "color": "gray"}
   ],
   "text.lavender.book.reload": "Reload",
+  "text.lavender.book.popout": "Pop out",
 
   "text.lavender.book.unlock_progress": [
     {"text": "Unlocked: ", "font": "minecraft:uniform", "color": "dark_gray"},

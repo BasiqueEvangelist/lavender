@@ -137,20 +137,6 @@ public class LavenderClient implements ClientModInitializer {
         });
 
         UIParsing.registerFactory(Lavender.id("item-list"), element -> new ItemListComponent());
-
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            dispatcher.register(ClientCommandManager.literal("open-lavender-window")
-                .then(ClientCommandManager.argument("book_id", IdentifierArgumentType.identifier())
-                    .executes(context -> {
-                        @SuppressWarnings("unchecked")
-                        var book = BookLoader.get(IdentifierArgumentType.getIdentifier((CommandContext<ServerCommandSource>)(Object) context, "book_id"));
-
-                        new LavenderBookWindow(book)
-                            .open();
-
-                        return 0;
-                    })));
-        });
     }
 
     public static UUID currentWorldId() {

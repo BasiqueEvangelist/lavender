@@ -62,6 +62,7 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
 
     public final Book book;
     public final boolean isOverlay;
+    public final @Nullable LavenderBookWindow bookWindow;
 
     private final MarkdownProcessor<ParentComponent> processor;
     private Window window;
@@ -78,10 +79,11 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
 
     private final Deque<NavFrame> navStack = new ArrayDeque<>();
 
-    public LavenderBookScreen(Book book, boolean isOverlay) {
+    public LavenderBookScreen(Book book, boolean isOverlay, @Nullable LavenderBookWindow bookWindow) {
         super(FlowLayout.class, Lavender.id("book"));
         this.book = book;
         this.isOverlay = isOverlay;
+        this.bookWindow = bookWindow;
 
         var processor = MarkdownProcessor.richText(0)
                 .copyWith(() -> new BookCompiler(this.bookComponentSource))
@@ -101,7 +103,7 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
     }
 
     public LavenderBookScreen(Book book) {
-        this(book, false);
+        this(book, false, null);
     }
 
     @Override
@@ -173,12 +175,30 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
                         BookContentLoader.reloadContents(this.client.getResourceManager());
 
                         var newBook = BookLoader.get(this.book.id());
-                        if (newBook != null) {
-                            this.client.setScreen(new LavenderBookScreen(newBook));
+
+                        if (bookWindow != null) {
+                            if (newBook != null) {
+                                bookWindow.resetScreen(newBook);
+                            } else {
+                                bookWindow.close();
+                            }
                         } else {
-                            this.client.setScreen(null);
+                            if (newBook != null) {
+                                this.client.setScreen(new LavenderBookScreen(newBook));
+                            } else {
+                                this.client.setScreen(null);
+                            }
                         }
                     })
+            );
+        }
+
+        if (this.bookWindow == null && !this.isOverlay) {
+            this.component(FlowLayout.class, "primary-panel").child(
+                this.template(ButtonComponent.class, "popout-button").onPress(buttonComponent -> {
+                    new LavenderBookWindow(book)
+                        .open();
+                })
             );
         }
 

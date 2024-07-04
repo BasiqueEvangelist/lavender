@@ -404,5 +404,23 @@
                 <positioning type="absolute">-9,150</positioning>
             </button>
         </template>
+
+        <template name="popout-button">
+            <button>
+                <renderer>
+                    <texture texture="{{book-texture}}" u="21" v="210"
+                             texture-width="512" texture-height="256"/>
+                </renderer>
+
+                <tooltip-text translate="true">text.lavender.book.popout</tooltip-text>
+
+                <sizing>
+                    <horizontal method="fixed">16</horizontal>
+                    <vertical method="fixed">16</vertical>
+                </sizing>
+
+                <positioning type="absolute">-9,130</positioning>
+            </button>
+        </template>
     </templates>
 </owo-ui>

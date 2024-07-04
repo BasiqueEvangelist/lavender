@@ -70,7 +70,7 @@ public class OffhandBookRenderer {
 
             var screen = cachedScreen;
             if (screen == null || screen.book != book) {
-                cachedScreen = screen = new LavenderBookScreen(book, true);
+                cachedScreen = screen = new LavenderBookScreen(book, true, null);
                 screen.init(client, client.getWindow().getScaledWidth(), client.getWindow().getScaledHeight());
 
                 // we dispose the ui adapter here to
