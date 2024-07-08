@@ -11,10 +11,6 @@ import io.wispforest.lavender.book.LavenderBookItem;
 import io.wispforest.lavender.book.BookLoader;
 import io.wispforest.lavender.client.StructureOverlayRenderer;
 import io.wispforest.lavender.structure.LavenderStructures;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.IdentifierArgumentType;
@@ -57,22 +53,21 @@ public class LavenderCommands {
         return 0;
     }
 
-    @Environment(EnvType.CLIENT)
     public static class Client {
 
         private static final SimpleCommandExceptionType NO_SUCH_STRUCTURE = new SimpleCommandExceptionType(Text.literal("No such structure is loaded"));
-        private static final SuggestionProvider<FabricClientCommandSource> STRUCTURE_INFO = (context, builder) ->
+        private static final SuggestionProvider<ServerCommandSource> STRUCTURE_INFO = (context, builder) ->
                 CommandSource.suggestMatching(LavenderStructures.loadedStructures().stream().map(Identifier::toString), builder);
 
-        public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
-            dispatcher.register(ClientCommandManager.literal("structure-overlay")
-                    .then(ClientCommandManager.literal("clear-all").executes(context -> {
+        public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+            dispatcher.register(literal("structure-overlay")
+                    .then(literal("clear-all").executes(context -> {
                         StructureOverlayRenderer.clearOverlays();
                         return 0;
                     }))
 
-                    .then(ClientCommandManager.literal("add")
-                            .then(ClientCommandManager.argument("structure", IdentifierArgumentType.identifier()).suggests(STRUCTURE_INFO).executes(context -> {
+                    .then(literal("add")
+                            .then(argument("structure", IdentifierArgumentType.identifier()).suggests(STRUCTURE_INFO).executes(context -> {
                                 var structureId = context.getArgument("structure", Identifier.class);
                                 if (LavenderStructures.get(structureId) == null) throw NO_SUCH_STRUCTURE.create();
 

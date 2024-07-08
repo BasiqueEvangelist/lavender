@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken;
 import com.mojang.serialization.JsonOps;
 import io.wispforest.lavender.Lavender;
 import io.wispforest.lavender.client.BookBakedModel;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.ResourceFinder;
@@ -14,7 +13,8 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
-import net.minecraft.util.Util;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -32,12 +32,12 @@ public class BookLoader {
     private static final Map<Identifier, Book> LOADED_BOOKS = new HashMap<>();
     private static final Map<Identifier, Book> VISIBLE_BOOKS = new HashMap<>();
 
-    public static void initialize() {
-        ModelLoadingPlugin.register(context -> {
-            context.addModels(BookBakedModel.Unbaked.BROWN_BOOK_ID);
+    public static void initialize(IEventBus modBus) {
+        modBus.addListener(ModelEvent.RegisterAdditional.class, event -> {
+            event.register(ModelIdentifier.standalone(BookBakedModel.Unbaked.BROWN_BOOK_ID));
             for (var book : VISIBLE_BOOKS.values()) {
                 if (book.dynamicBookModel() == null) return;
-                context.addModels(book.dynamicBookModel());
+                event.register(ModelIdentifier.standalone(book.dynamicBookModel()));
             }
         });
     }

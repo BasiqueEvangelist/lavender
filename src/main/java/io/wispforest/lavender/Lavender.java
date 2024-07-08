@@ -5,26 +5,34 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.lavender.book.LavenderBookItem;
+import io.wispforest.lavender.client.LavenderClient;
+import io.wispforest.owo.extras.ServerPlayConnectionEvents;
 import io.wispforest.owo.serialization.CodecUtils;
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.PersistentState;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.GameData;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
 import java.util.UUID;
 
-public class Lavender implements ModInitializer {
+@Mod(Lavender.MOD_ID)
+public class Lavender {
 
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final String MOD_ID = "lavender";
@@ -32,17 +40,34 @@ public class Lavender implements ModInitializer {
 
     public static final Identifier WORLD_ID_CHANNEL = Lavender.id("world_id_channel");
 
-    @Override
-    public void onInitialize() {
-        Registry.register(Registries.ITEM, id("dynamic_book"), LavenderBookItem.DYNAMIC_BOOK);
-        Registry.register(Registries.SOUND_EVENT, ITEM_BOOK_OPEN.getId(), ITEM_BOOK_OPEN);
 
-        CommandRegistrationCallback.EVENT.register(LavenderCommands::register);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MOD_ID);
+    public static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(MOD_ID);
 
-        PayloadTypeRegistry.playS2C().register(WorldUUIDPayload.ID, CodecUtils.toPacketCodec(WorldUUIDPayload.ENDEC));
+    public Lavender(IEventBus modBus) {
+        ITEMS.register(modBus);
+        DATA_COMPONENTS.register(modBus);
+
+        // trigger clinit.
+        // TODO: make this better
+        var unused = LavenderBookItem.BOOK_ID;
+
+        modBus.addListener(RegisterEvent.class, event -> {
+            event.register(RegistryKeys.SOUND_EVENT, ITEM_BOOK_OPEN.getId(), () -> ITEM_BOOK_OPEN);
+        });
+
+        NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, event -> {
+            LavenderCommands.register(event.getDispatcher(), event.getBuildContext(), event.getCommandSelection());
+        });
+
+        modBus.addListener(RegisterPayloadHandlersEvent.class, event -> {
+            event.registrar("1")
+                .optional()
+                .playToClient(WorldUUIDPayload.ID, CodecUtils.toPacketCodec(WorldUUIDPayload.ENDEC), LavenderClient::handleCurrentWorldPacket);
+        });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            sender.sendPacket(new WorldUUIDPayload(server.getOverworld().getPersistentStateManager().getOrCreate(WorldUUIDState.TYPE, "lavender_world_id").id));
+            sender.accept(new WorldUUIDPayload(server.getOverworld().getPersistentStateManager().getOrCreate(WorldUUIDState.TYPE, "lavender_world_id").id));
         });
     }
 

@@ -5,15 +5,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import io.wispforest.lavender.Lavender;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import io.wispforest.owo.extras.ClientPlayConnectionEvents;
 import net.minecraft.resource.JsonDataLoader;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,11 +30,15 @@ public class LavenderStructures {
     private static boolean tagsAvailable = false;
 
     @ApiStatus.Internal
-    public static void initialize() {
-        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new ReloadListener());
+    public static void initialize(IEventBus modBus) {
+        modBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
+            event.registerReloadListener(new ReloadListener());
+        });
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> tagsAvailable = false);
-        CommonLifecycleEvents.TAGS_LOADED.register((registries, client) -> {
+        NeoForge.EVENT_BUS.addListener(TagsUpdatedEvent.class, event -> {
+            if (!event.shouldUpdateStaticData()) return;
+
             tagsAvailable = true;
             tryParseStructures();
         });
@@ -66,14 +70,9 @@ public class LavenderStructures {
         });
     }
 
-    private static class ReloadListener extends JsonDataLoader implements IdentifiableResourceReloadListener {
+    private static class ReloadListener extends JsonDataLoader {
         public ReloadListener() {
             super(new GsonBuilder().setLenient().disableHtmlEscaping().create(), "lavender/structures");
-        }
-
-        @Override
-        public Identifier getFabricId() {
-            return Lavender.id("structure_info_loader");
         }
 
         @Override

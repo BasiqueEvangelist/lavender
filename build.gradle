@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '1.6-SNAPSHOT'
+    id 'dev.architectury.loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -22,6 +22,15 @@ loom {
             ideConfigGenerated true
             name "Testmod Client"
             source sourceSets.testmod
+
+            mods {
+                create("lavender_flower") {
+                    sourceSet sourceSets.testmod
+                }
+                create("lavender"){
+                    sourceSet sourceSets.main
+                }
+            }
         }
 
         testmodServer {
@@ -29,6 +38,15 @@ loom {
             ideConfigGenerated true
             name "Testmod Server"
             source sourceSets.testmod
+
+            mods {
+                create("lavender_flower") {
+                    sourceSet sourceSets.testmod
+                }
+                create("lavender"){
+                    sourceSet sourceSets.main
+                }
+            }
         }
     }
 }
@@ -41,27 +59,43 @@ repositories {
 
     // modmenu
     maven { url "https://maven.terraformersmc.com/releases/" }
+
+    maven { url 'https://maven.neoforged.net/releases/' }
+
+    mavenLocal()
 }
 
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    mappings loom.layered {
+        it.mappings("net.fabricmc:yarn:${rootProject.yarn_mappings}:v2")
+        it.mappings("dev.architectury:yarn-mappings-patch-neoforge:1.21+build.4")
+    }
+//    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+//    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    modImplementation "io.wispforest:owo-lib:${project.owo_version}"
-    include "io.wispforest:owo-sentinel:${project.owo_version}"
+    neoForge "net.neoforged:neoforge:${project.neoforge_version}"
+
+    modImplementation "io.wispforest:owo-lib-neo:${project.owo_version}"
+//    include "io.wispforest:owo-sentinel:${project.owo_version}"
 
 //    modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
-    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${project.rei_version}"
 
-    include modApi("io.wispforest.lavender-md:core:${project.lavender_md_version}")
-    include modApi("io.wispforest.lavender-md:owo-ui:${project.lavender_md_version}")
+    include modApi("io.wispforest.lavender-md-neo:core:${project.lavender_md_version}")
+    include modApi("io.wispforest.lavender-md-neo:owo-ui:${project.lavender_md_version}")
 
-    modLocalRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
+//    modLocalRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+    // forge weirdness
+    forgeRuntimeLibrary("io.wispforest:endec:0.1.3")
+    forgeRuntimeLibrary("io.wispforest.endec:netty:0.1.2")
+    forgeRuntimeLibrary("io.wispforest.endec:gson:0.1.2")
+    //include api(forgeRuntimeLibrary("io.wispforest.endec:jankson:0.1.2"))
+    forgeRuntimeLibrary("blue.endless:jankson:1.2.2")
+
 
     // --- testmod ---
 
@@ -75,7 +109,7 @@ base {
 processResources {
     inputs.property "version", project.version
 
-    filesMatching("fabric.mod.json") {
+    filesMatching("META-INF/neoforge.mods.toml") {
         expand "version": project.version
     }
 }
@@ -93,6 +127,10 @@ java {
 
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+remapJar {
+    atAccessWideners.add("lavender.accesswidener")
 }
 
 jar {

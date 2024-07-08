@@ -8,6 +8,7 @@ import io.wispforest.lavender.book.BookLoader;
 import io.wispforest.lavender.book.LavenderBookItem;
 import io.wispforest.lavender.md.ItemListComponent;
 import io.wispforest.lavender.structure.LavenderStructures;
+import io.wispforest.owo.extras.ClientPlayConnectionEvents;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
@@ -19,16 +20,6 @@ import io.wispforest.owo.ui.hud.Hud;
 import io.wispforest.owo.ui.parsing.UIParsing;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.Items;
@@ -36,12 +27,21 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-@Environment(EnvType.CLIENT)
-public class LavenderClient implements ClientModInitializer {
+@Mod(value = Lavender.MOD_ID, dist = Dist.CLIENT)
+public class LavenderClient {
 
     public static final BlitCutoutProgram BLIT_CUTOUT_PROGRAM = new BlitCutoutProgram();
     public static final BlitAlphaProgram BLIT_ALPHA_PROGRAM = new BlitAlphaProgram();
@@ -51,31 +51,36 @@ public class LavenderClient implements ClientModInitializer {
 
     private static UUID currentWorldId = null;
 
-    @Override
-    public void onInitializeClient() {
-        ClientCommandRegistrationCallback.EVENT.register(LavenderCommands.Client::register);
-
-        ModelLoadingPlugin.register(pluginContext -> {
-            pluginContext.resolveModel().register(context -> {
-                if (!context.id().equals(Lavender.id("item/dynamic_book"))) return null;
-                return new BookBakedModel.Unbaked();
-            });
+    public LavenderClient(IEventBus modBus) {
+        NeoForge.EVENT_BUS.addListener(RegisterClientCommandsEvent.class, event -> {
+            LavenderCommands.Client.register(event.getDispatcher(), event.getBuildContext());
         });
+
+        // TODO: figure out what the fuck.
+
+//        ModelLoadingPlugin.register(pluginContext -> {
+//            pluginContext.resolveModel().register(context -> {
+//                if (!context.id().equals(Lavender.id("item/dynamic_book"))) return null;
+//                return new BookBakedModel.Unbaked();
+//            });
+//        });
 
         StructureOverlayRenderer.initialize();
         OffhandBookRenderer.initialize();
 
-        LavenderStructures.initialize();
-        BookLoader.initialize();
-        BookContentLoader.initialize();
+        LavenderStructures.initialize(modBus);
+        BookLoader.initialize(modBus);
+        BookContentLoader.initialize(modBus);
 
-        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingIn.class, event -> {
             BookLoader.reload(MinecraftClient.getInstance().getResourceManager());
             BookContentLoader.reloadContents(MinecraftClient.getInstance().getResourceManager());
         });
 
         Hud.add(ENTRY_HUD_ID, () -> Containers.horizontalFlow(Sizing.content(), Sizing.content()).gap(5).positioning(Positioning.across(50, 52)));
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+        NeoForge.EVENT_BUS.addListener(ClientTickEvent.Post.class, event -> {
+            MinecraftClient client = MinecraftClient.getInstance();
+
             if (client.world == null || !(Hud.getComponent(ENTRY_HUD_ID) instanceof FlowLayout hudComponent)) return;
 
             hudComponent.<FlowLayout>configure(container -> {
@@ -101,30 +106,27 @@ public class LavenderClient implements ClientModInitializer {
             });
         });
 
-        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            var stack = player.getStackInHand(hand);
-            if (!player.isSneaking()) return ActionResult.PASS;
+        NeoForge.EVENT_BUS.addListener(PlayerInteractEvent.RightClickBlock.class, event -> {
+            var stack = event.getEntity().getStackInHand(event.getHand());
+            if (!event.getEntity().isSneaking()) return;
 
             var book = LavenderBookItem.bookOf(stack);
-            if (book == null) return ActionResult.PASS;
+            if (book == null) return;
 
-            var item = world.getBlockState(hitResult.getBlockPos()).getBlock().asItem();
-            if (item == Items.AIR) return ActionResult.PASS;
+            var item = event.getLevel().getBlockState(event.getHitVec().getBlockPos()).getBlock().asItem();
+            if (item == Items.AIR) return;
 
             var associatedEntry = book.entryByAssociatedItem(item.getDefaultStack());
-            if (associatedEntry == null || !associatedEntry.canPlayerView((ClientPlayerEntity) player)) {
-                return ActionResult.PASS;
+            if (associatedEntry == null || !associatedEntry.canPlayerView((ClientPlayerEntity) event.getEntity())) {
+                return;
             }
 
             LavenderBookScreen.pushEntry(book, associatedEntry);
             MinecraftClient.getInstance().setScreen(new LavenderBookScreen(book));
 
-            player.swingHand(hand);
-            return ActionResult.FAIL;
-        });
-
-        ClientPlayNetworking.registerGlobalReceiver(Lavender.WorldUUIDPayload.ID, (payload, context) -> {
-            currentWorldId = payload.worldUuid();
+            event.getEntity().swingHand(event.getHand());
+            event.setCanceled(true);
+            event.setCancellationResult(ActionResult.FAIL);
         });
 
         UIParsing.registerFactory(Lavender.id("ingredient"), element -> {
@@ -133,6 +135,10 @@ public class LavenderClient implements ClientModInitializer {
         });
 
         UIParsing.registerFactory(Lavender.id("item-list"), element -> new ItemListComponent());
+    }
+
+    public static void handleCurrentWorldPacket(Lavender.WorldUUIDPayload payload, IPayloadContext ctx) {
+        currentWorldId = payload.worldUuid();
     }
 
     public static UUID currentWorldId() {

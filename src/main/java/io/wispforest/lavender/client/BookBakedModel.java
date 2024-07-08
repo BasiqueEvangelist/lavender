@@ -2,7 +2,6 @@ package io.wispforest.lavender.client;
 
 import io.wispforest.lavender.Lavender;
 import io.wispforest.lavender.book.LavenderBookItem;
-import net.fabricmc.fabric.api.renderer.v1.model.ForwardingBakedModel;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.Baker;
@@ -16,6 +15,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
+import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.function.Function;
 
 
-public class BookBakedModel extends ForwardingBakedModel {
+public class BookBakedModel extends BakedModelWrapper<BakedModel> {
 
     private final ModelOverrideList overrides = new ModelOverrideList() {
         @Nullable
@@ -40,7 +40,7 @@ public class BookBakedModel extends ForwardingBakedModel {
     };
 
     private BookBakedModel(BakedModel parent) {
-        this.wrapped = parent;
+        super(parent);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class BookBakedModel extends ForwardingBakedModel {
         @Nullable
         @Override
         public BakedModel bake(Baker baker, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer) {
-            return new BookBakedModel(baker.bake(BROWN_BOOK_ID, rotationContainer));
+            return new BookBakedModel(baker.bake(BROWN_BOOK_ID, rotationContainer, textureGetter));
         }
 
         @Override

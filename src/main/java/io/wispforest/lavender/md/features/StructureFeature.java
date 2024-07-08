@@ -10,7 +10,7 @@ import io.wispforest.lavendermd.Lexer;
 import io.wispforest.lavendermd.MarkdownFeature;
 import io.wispforest.lavendermd.Parser;
 import io.wispforest.lavendermd.compiler.MarkdownCompiler;
-import io.wispforest.lavendermd.compiler.OwoUICompiler;
+import io.wispforest.lavendermd.owoui.compiler.OwoUICompiler;
 import io.wispforest.owo.ui.component.SlimSliderComponent;
 import io.wispforest.owo.ui.core.ParentComponent;
 import net.minecraft.text.Text;

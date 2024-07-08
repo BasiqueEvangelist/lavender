@@ -4,8 +4,6 @@ import com.google.common.base.Preconditions;
 import io.wispforest.lavender.Lavender;
 import io.wispforest.lavender.client.LavenderBookScreen;
 import io.wispforest.owo.ops.TextOps;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.component.ComponentType;
 import net.minecraft.entity.player.PlayerEntity;
@@ -20,25 +18,27 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class LavenderBookItem extends Item {
 
-    public static final ComponentType<Identifier> BOOK_ID = Registry.register(
-            Registries.DATA_COMPONENT_TYPE,
-            Lavender.id("book_id"),
-            ComponentType.<Identifier>builder()
+    public static final Supplier<ComponentType<Identifier>> BOOK_ID = Lavender.DATA_COMPONENTS.register(
+            "book_id",
+            () -> ComponentType.<Identifier>builder()
                     .codec(Identifier.CODEC)
                     .packetCodec(Identifier.PACKET_CODEC)
                     .build()
     );
 
-    public static final LavenderBookItem DYNAMIC_BOOK = new LavenderBookItem(null, new Settings().maxCount(1));
+    public static final Supplier<LavenderBookItem> DYNAMIC_BOOK = Lavender.ITEMS.register("dynamic_book", () -> new LavenderBookItem(null, new Settings().maxCount(1)));
 
     private static final Map<Identifier, LavenderBookItem> BOOK_ITEMS = new HashMap<>();
 
@@ -60,19 +60,11 @@ public class LavenderBookItem extends Item {
     }
 
     /**
-     * Shorthand of {@link #registerForBook(Identifier, Identifier, net.minecraft.item.Item.Settings)} which
-     * uses {@code bookId} as the item id
-     */
-    public static LavenderBookItem registerForBook(@NotNull Identifier bookId, Settings settings) {
-        return registerForBook(bookId, bookId, settings);
-    }
-
-    /**
-     * Create, register and return a book item under {@code itemId} as the canonical
+     * Create and return a book item as the canonical
      * item for the book referred to by the given {@code bookId}
      */
-    public static LavenderBookItem registerForBook(@NotNull Identifier bookId, @NotNull Identifier itemId, Settings settings) {
-        return registerForBook(Registry.register(Registries.ITEM, itemId, new LavenderBookItem(bookId, settings)));
+    public static LavenderBookItem forBook(@NotNull Identifier bookId, Settings settings) {
+        return registerForBook(new LavenderBookItem(bookId, settings));
     }
 
     /**
@@ -132,7 +124,7 @@ public class LavenderBookItem extends Item {
      * @return A dynamic book with the correct NBT to represent the given book
      */
     public static ItemStack createDynamic(Book book) {
-        var stack = DYNAMIC_BOOK.getDefaultStack();
+        var stack = DYNAMIC_BOOK.get().getDefaultStack();
         stack.set(BOOK_ID, book.id());
         return stack;
     }
@@ -156,7 +148,7 @@ public class LavenderBookItem extends Item {
         return TypedActionResult.success(playerStack);
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     private static void openBookScreen(Book book) {
         MinecraftClient.getInstance().setScreen(new LavenderBookScreen(book));
     }

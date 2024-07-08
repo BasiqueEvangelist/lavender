@@ -15,8 +15,6 @@ import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.event.WindowResizeCallback;
 import io.wispforest.owo.ui.hud.Hud;
 import io.wispforest.owo.ui.util.Delta;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.SimpleFramebuffer;
@@ -26,7 +24,6 @@ import net.minecraft.client.render.OverlayVertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.model.ModelLoader;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -36,6 +33,9 @@ import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL30C;
@@ -128,16 +128,18 @@ public class StructureOverlayRenderer {
     public static void initialize() {
         Hud.add(HUD_COMPONENT_ID, () -> Containers.verticalFlow(Sizing.content(), Sizing.content()).gap(15).positioning(Positioning.relative(5, 100)));
 
-        WorldRenderEvents.LAST.register(context -> {
+        NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, event -> {
+            if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_LEVEL) return;
+
             RenderSystem.runAsFancy(() -> {
                 if (!(Hud.getComponent(HUD_COMPONENT_ID) instanceof FlowLayout hudComponent)) {
                     return;
                 }
 
-                var matrices = context.matrixStack();
+                var matrices = event.getPoseStack();
                 matrices.push();
 
-                matrices.translate(-context.camera().getPos().x, -context.camera().getPos().y, -context.camera().getPos().z);
+                matrices.translate(-event.getCamera().getPos().x, -event.getCamera().getPos().y, -event.getCamera().getPos().z);
 
                 var client = MinecraftClient.getInstance();
                 var effectConsumers = client.getBufferBuilders().getEffectVertexConsumers();
@@ -172,7 +174,9 @@ public class StructureOverlayRenderer {
                             matrices.translate(anchor.getX(), anchor.getY(), anchor.getZ());
 
                             structure.forEachPredicate((pos, predicate) -> {
-                                var state = context.world().getBlockState(testPos.set(anchor).move(pos)).rotate(StructureTemplate.inverse(entry.rotation));
+                                var world = MinecraftClient.getInstance().world;
+                                var statePos = testPos.set(anchor).move(pos);
+                                var state = world.getBlockState(statePos).rotate(world, statePos, StructureTemplate.inverse(entry.rotation));
                                 var result = predicate.test(state);
 
                                 if (result == BlockStatePredicate.Result.STATE_MATCH) {
@@ -182,7 +186,7 @@ public class StructureOverlayRenderer {
 
                                     matrices.push();
                                     matrices.translate(pos.getX(), pos.getY(), pos.getZ());
-                                    client.getBlockRenderManager().renderDamage(state, testPos, context.world(), matrices, overlayConsumer);
+                                    client.getBlockRenderManager().renderDamage(state, testPos, MinecraftClient.getInstance().world, matrices, overlayConsumer);
                                     matrices.pop();
                                 }
 
@@ -265,19 +269,21 @@ public class StructureOverlayRenderer {
             FRAMEBUFFER.get().resize(window.getFramebufferWidth(), window.getFramebufferHeight(), MinecraftClient.IS_SYSTEM_MAC);
         });
 
-        UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-            if (PENDING_OVERLAY == null) return ActionResult.PASS;
+        NeoForge.EVENT_BUS.addListener(PlayerInteractEvent.RightClickBlock.class, event -> {
+            if (PENDING_OVERLAY == null) return;
 
             var structure = PENDING_OVERLAY.fetchStructure();
 
-            var targetPos = hitResult.getBlockPos().add(getPendingOffset(structure));
-            if (!player.isSneaking()) targetPos = targetPos.offset(hitResult.getSide());
+            var targetPos = event.getHitVec().getBlockPos().add(getPendingOffset(structure));
+            if (!event.getEntity().isSneaking()) targetPos = targetPos.offset(event.getHitVec().getSide());
 
             ACTIVE_OVERLAYS.put(targetPos, PENDING_OVERLAY);
             PENDING_OVERLAY = null;
 
-            player.swingHand(hand);
-            return ActionResult.FAIL;
+            event.getEntity().swingHand(event.getHand());
+
+            event.setCancellationResult(ActionResult.FAIL);
+            event.setCanceled(true);
         });
     }
 

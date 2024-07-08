@@ -6,8 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.wispforest.lavender.Lavender;
 import io.wispforest.lavender.client.LavenderClient;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.util.Identifier;
+import net.neoforged.fml.loading.FMLPaths;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -112,7 +112,7 @@ public class LavenderClientStorage {
     }
 
     private static Path storageFile() {
-        return FabricLoader.getInstance().getConfigDir().resolve("lavender_client_storage.json");
+        return FMLPaths.CONFIGDIR.get().resolve("lavender_client_storage.json");
     }
 
     public record Bookmark(Type type, Identifier id) {

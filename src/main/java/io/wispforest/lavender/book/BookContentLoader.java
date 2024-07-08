@@ -4,16 +4,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.JsonOps;
 import io.wispforest.lavender.Lavender;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.Sizing;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition;
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.argument.ItemStringReader;
 import net.minecraft.item.Item;
@@ -25,6 +20,8 @@ import net.minecraft.registry.tag.TagKey;
 import net.minecraft.resource.*;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,19 +30,16 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class BookContentLoader implements SynchronousResourceReloader, IdentifiableResourceReloadListener {
+public class BookContentLoader implements SynchronousResourceReloader {
 
     private static final ResourceFinder ENTRY_FINDER = new ResourceFinder("lavender/entries", ".md");
     private static final ResourceFinder CATEGORY_FINDER = new ResourceFinder("lavender/categories", ".md");
     private static final Gson GSON = new GsonBuilder().setLenient().disableHtmlEscaping().create();
 
-    public static void initialize() {
-        ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(new BookContentLoader());
-    }
-
-    @Override
-    public Identifier getFabricId() {
-        return Lavender.id("book_content_loader");
+    public static void initialize(IEventBus modBus) {
+        modBus.addListener(RegisterClientReloadListenersEvent.class, event -> {
+            event.registerReloadListener(new BookContentLoader());
+        });
     }
 
     @Override
@@ -207,12 +201,13 @@ public class BookContentLoader implements SynchronousResourceReloader, Identifia
                 meta = GSON.fromJson(content.substring(0, frontmatterEnd), JsonObject.class);
                 content = content.substring(frontmatterEnd + 3).stripLeading();
 
-                if (meta.has(ResourceConditions.CONDITIONS_KEY)) {
-                    var conditions = ResourceCondition.CONDITION_CODEC.parse(JsonOps.INSTANCE, meta.get(ResourceConditions.CONDITIONS_KEY));
-                    if (conditions.isSuccess() && !conditions.getOrThrow().test(MinecraftClient.getInstance().world.getRegistryManager())) {
-                        return null;
-                    }
-                }
+                // TODO: figure out aeasfjasjfajsfak;lsjfkla
+//                if (meta.has(ConditionalOps.DEFAULT_CONDITIONS_KEY)) {
+//                    var conditions = ResourceCondition.CONDITION_CODEC.parse(JsonOps.INSTANCE, meta.get(ResourceConditions.CONDITIONS_KEY));
+//                    if (conditions.isSuccess() && !conditions.getOrThrow().test(MinecraftClient.getInstance().world.getRegistryManager())) {
+//                        return null;
+//                    }
+//                }
 
                 return new MarkdownResource(meta, book.expandMacros(resourceId, content.replaceAll("\\r\\n?", "\n")));
             } else {

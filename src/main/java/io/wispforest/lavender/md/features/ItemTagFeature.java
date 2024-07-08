@@ -5,7 +5,7 @@ import io.wispforest.lavendermd.Lexer;
 import io.wispforest.lavendermd.MarkdownFeature;
 import io.wispforest.lavendermd.Parser;
 import io.wispforest.lavendermd.compiler.MarkdownCompiler;
-import io.wispforest.lavendermd.compiler.OwoUICompiler;
+import io.wispforest.lavendermd.owoui.compiler.OwoUICompiler;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;

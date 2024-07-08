@@ -1,0 +1,52 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+issueTrackerURL = "https://github.com/wisp-forest/lavender/issues"
+license = "MIT"
+
+[[mods]]
+modId = "lavender"
+version = "${version}"
+displayName = "Lavender"
+authors = "glisco"
+displayURL = "https://modrinth.com/project/lavender"
+description = '''
+Apparently Lavender and Patchouli are really similar-looking flowers. Oh yeah, also this is a Guidebook API
+'''
+logoFile = "assets/lavender/icon.png"
+
+[[mixins]]
+config = 'lavender.mixins.json'
+
+[[dependencies.lavender]]
+modId = "neoforge"
+required = true
+versionRange = "[21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.lavender]]
+modId = "minecraft"
+required = true
+versionRange = "[1.21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.lavender]]
+modId = "owo"
+required = true
+versionRange = "[0.12.10,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.lavender]]
+modId = "lavender_md"
+required = true
+versionRange = "[0.1.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.lavender]]
+modId = "lavender_md_owo_ui"
+required = true
+ordering = "NONE"
+side = "BOTH"
