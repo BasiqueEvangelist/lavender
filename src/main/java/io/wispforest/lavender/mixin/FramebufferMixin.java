@@ -1,8 +1,6 @@
 package io.wispforest.lavender.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.mojang.blaze3d.platform.GlStateManager;
-import io.wispforest.lavender.client.LavenderClient;
 import io.wispforest.lavender.pond.LavenderFramebufferExtension;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gl.ShaderProgram;

@@ -6,7 +6,6 @@ import com.mojang.serialization.JsonOps;
 import io.wispforest.lavender.Lavender;
 import io.wispforest.lavender.client.BookBakedModel;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.ResourceFinder;
 import net.minecraft.resource.ResourceManager;
@@ -14,7 +13,6 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
-import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;

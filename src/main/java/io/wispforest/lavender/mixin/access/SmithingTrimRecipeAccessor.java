@@ -2,7 +2,6 @@ package io.wispforest.lavender.mixin.access;
 
 import io.wispforest.lavender.pond.SmithingRecipeAccessor;
 import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.SmithingTransformRecipe;
 import net.minecraft.recipe.SmithingTrimRecipe;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;

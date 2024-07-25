@@ -1,6 +1,7 @@
 plugins {
     id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
+    id "com.diffplug.spotless" version "7.0.0.BETA1"
 }
 
 version = "${project.mod_version}+${project.minecraft_base_version}"
@@ -98,6 +99,15 @@ java {
 jar {
     from("LICENSE") {
         rename { "${it}_${base.archivesName.get()}"}
+    }
+}
+
+spotless {
+    java {
+        toggleOffOn()
+        removeUnusedImports()
+        indentWithSpaces()
+        endWithNewline()
     }
 }
 

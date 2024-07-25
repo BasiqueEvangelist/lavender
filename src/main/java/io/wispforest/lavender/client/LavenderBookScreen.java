@@ -1070,4 +1070,3 @@ public class LavenderBookScreen extends BaseUIModelScreen<FlowLayout> implements
         UIParsing.registerFactory(Lavender.id("unread-notification"), UnreadNotificationComponent::parse);
     }
 }
-
